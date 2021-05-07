@@ -1,8 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trivia_wars/MazeLocation.dart';
 import 'package:trivia_wars/utils/FloodFill.dart';
-import 'package:numberpicker/numberpicker.dart';
-
 import 'utils/BFS.dart';
 
 class Board extends StatefulWidget {
@@ -78,7 +77,7 @@ class _BoardState extends State<Board> {
   void getPath(MazeLocation endPath) {
     pathTiles.clear();
     List<MazeLocation> path = BFS().findPath(MazeLocation(row: 0, col: 0), MazeLocation(row: endPath.getRow(), col: endPath.getCol()));
-    //pathTiles = path;
+
     setState(() {
       pathTiles = path;
     });
@@ -174,23 +173,6 @@ class _BoardState extends State<Board> {
     return rowArr;
   }
 
-  Future _showIntegerDialog() async {
-    await showDialog<int>(
-      context: context,
-      barrierColor: Colors.white,
-      builder: (BuildContext context) {
-        return new NumberPicker(
-          minValue: 0,
-          maxValue: 7,
-          step: 1,
-          value: 0,
-          onChanged: _handleValueChangedExternally,
-          //title: new Text("Pick a value"),
-        );
-      },
-    ).then((value) => {print(value)});
-  }
-
   void _handleValueChangedExternally(value) {
     if (value != null) {
       if (value is int) {
@@ -201,31 +183,67 @@ class _BoardState extends State<Board> {
     }
   }
 
+  void showStatePicker(BuildContext context, double width) {
+    showCupertinoModalPopup(
+        context: context,
+        builder: (_) => Container(
+            color: Colors.white,
+            width: width,
+            height: 200,
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
+              CupertinoButton(
+                  child: Text(
+                    "Done",
+                    textAlign: TextAlign.right,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  }),
+              Expanded(
+                  child: CupertinoPicker(
+                useMagnifier: true,
+                magnification: 1.1,
+                backgroundColor: Colors.white,
+                itemExtent: 40,
+                scrollController: FixedExtentScrollController(initialItem: 0),
+                children: [0, 1, 2, 3, 4, 5, 6, 7]
+                    .map((value) => SizedBox(
+                        width: width,
+                        child: Container(
+                            color: Colors.white,
+                            child: Text(
+                              value.toString(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(),
+                            ))))
+                    .toList(),
+                onSelectedItemChanged: (value) {
+                  _handleValueChangedExternally(value);
+                },
+              )),
+            ])));
+  }
+
   Widget build(BuildContext context) {
-    return Container(
-        color: Colors.white,
-        child: Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: getRows(),
-            ),
-            SizedBox(
-              height: 50,
-            ),
-            NumberPicker(
-              minValue: 0,
-              maxValue: 7,
-              step: 1,
-              value: currentPick,
-              onChanged: _handleValueChangedExternally,
-              //title: new Text("Pick a value"),
-            )
-          ],
-        )));
+    return LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
+      return Container(
+          color: Colors.white,
+          child: Center(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: getRows(),
+              ),
+              SizedBox(
+                height: 50,
+              ),
+              ElevatedButton(onPressed: () => {showStatePicker(context, viewportConstraints.maxWidth)}, child: Text("Pick a value"))
+            ],
+          )));
+    });
   }
 }
